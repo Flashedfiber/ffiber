@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Repository</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--primary);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text);
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-secondary);
+        }
+
+        .file-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .file-item, .folder-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .file-item:hover, .folder-item:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 8px;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .folder-item .icon {
+            background: #f59e0b;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 0.25rem;
+            word-break: break-word;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .hash-container {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .hash-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hash-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+            word-break: break-all;
+            background: var(--bg);
+            padding: 0.5rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .download-btn {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 0.6rem 1.25rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            margin-top: 0.75rem;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .hash-value {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .copy-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 File Repository</h1>
+            <p class="subtitle">Download files directly with MD5 verification</p>
+        </header>
+
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="file-grid" id="fileGrid"></div>
+    </div>
+
+    <script>
+        // FILE STRUCTURE CONFIGURATION
+        // Edit this structure to add/remove files and folders
+        const fileStructure = {
+            "documents": {
+                type: "folder",
+                children: {
+                    "report.pdf": {
+                        type: "file",
+                        size: "2.4 MB",
+                        url: "files/documents/report.pdf",
+                        md5: "5d41402abc4b2a76b9719d911017c592"
+                    },
+                    "presentation.pptx": {
+                        type: "file",
+                        size: "5.1 MB",
+                        url: "files/documents/presentation.pptx",
+                        md5: "098f6bcd4621d373cade4e832627b4f6"
+                    }
+                }
+            },
+            "images": {
+                type: "folder",
+                children: {
+                    "logo.png": {
+                        type: "file",
+                        size: "156 KB",
+                        url: "files/images/logo.png",
+                        md5: "ad0234829205b9033196ba818f7a872b"
+                    },
+                    "banner.jpg": {
+                        type: "file",
+                        size: "892 KB",
+                        url: "files/images/banner.jpg",
+                        md5: "e99a18c428cb38d5f260853678922e03"
+                    }
+                }
+            },
+            "software": {
+                type: "folder",
+                children: {
+                    "installer.exe": {
+                        type: "file",
+                        size: "45.2 MB",
+                        url: "files/software/installer.exe",
+                        md5: "d8578edf8458ce06fbc5bb76a58c5ca4"
+                    },
+                    "readme.txt": {
+                        type: "file",
+                        size: "2 KB",
+                        url: "files/software/readme.txt",
+                        md5: "098f6bcd4621d373cade4e832627b4f6"
+                    }
+                }
+            },
+            "sample.zip": {
+                type: "file",
+                size: "12.3 MB",
+                url: "files/sample.zip",
+                md5: "5d41402abc4b2a76b9719d911017c592"
+            }
+        };
+
+        // State management
+        let currentPath = [];
+
+        // Get current folder contents
+        function getCurrentFolder() {
+            let folder = fileStructure;
+            for (const segment of currentPath) {
+                folder = folder[segment].children;
+            }
+            return folder;
+        }
+
+        // Render breadcrumb navigation
+        function renderBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            let html = '<a href="#" class="breadcrumb-item" data-path="">🏠 Home</a>';
+            
+            let pathSoFar = [];
+            for (const segment of currentPath) {
+                pathSoFar.push(segment);
+                html += '<span class="breadcrumb-separator">/</span>';
+                html += `<a href="#" class="breadcrumb-item" data-path="${pathSoFar.join('/')}">${segment}</a>`;
+            }
+            
+            breadcrumb.innerHTML = html;
+            
+            // Add click handlers
+            breadcrumb.querySelectorAll('.breadcrumb-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const path = e.target.dataset.path;
+                    currentPath = path ? path.split('/') : [];
+                    render();
+                });
+            });
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Render files and folders
+        function renderFiles() {
+            const grid = document.getElementById('fileGrid');
+            const folder = getCurrentFolder();
+            const entries = Object.entries(folder);
+
+            if (entries.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        <p>This folder is empty</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort: folders first, then files
+            entries.sort((a, b) => {
+                if (a[1].type === b[1].type) return a[0].localeCompare(b[0]);
+                return a[1].type === 'folder' ? -1 : 1;
+            });
+
+            let html = '';
+            for (const [name, item] of entries) {
+                if (item.type === 'folder') {
+                    html += `
+                        <div class="folder-item" data-folder="${name}">
+                            <div class="item-header">
+                                <div class="icon">📁</div>
+                                <div class="item-info">
+                                    <div class="item-name">${name}</div>
+                                    <div class="item-meta">
+                                        <span class="meta-item">📂 Folder</span>
+                                        <span class="meta-item">📄 ${Object.keys(item.children).length} items</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const fileExt = name.split('.').pop().toUpperCase();
+                    html += `
+                        <div class="file-item">
+                            <div class="item-header">
+                                <div class="icon">📄</div>
+                                <div class="item-info">
+                                    <div class="item-name">${name}</div>
+                                    <div class="item-meta">
+                                        <span class="meta-item">📦 ${fileExt}</span>
+                                        <span class="meta-item">💾 ${item.size}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            ${item.md5 ? `
+                                <div class="hash-container">
+                                    <div class="hash-label">MD5 Checksum</div>
+                                    <div class="hash-value">
+                                        <code>${item.md5}</code>
+                                        <button class="copy-btn" onclick="copyToClipboard('${item.md5}', this)">Copy</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <a href="${item.url}" class="download-btn" download="${name}">
+                                ⬇️ Download
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            grid.innerHTML = html;
+
+            // Add folder click handlers
+            document.querySelectorAll('.folder-item').forEach(folder => {
+                folder.addEventListener('click', () => {
+                    const folderName = folder.dataset.folder;
+                    currentPath.push(folderName);
+                    render();
+                });
+            });
+        }
+
+        // Main render function
+        function render() {
+            renderBreadcrumb();
+            renderFiles();
+        }
+
+        // Initialize
+        render();
+    </script>
+</body>
+</html>
